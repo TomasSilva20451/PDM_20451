@@ -39,6 +39,7 @@ fun CalculatorApp() {
     var firstNumber by remember { mutableStateOf("") }   // Primeiro número
     var operator by remember { mutableStateOf("") }      // Operador (ex: +, -, *)
     var secondNumber by remember { mutableStateOf("") }  // Segundo número
+    var calculationComplete by remember { mutableStateOf(false) }  // Flag para indicar se o cálculo foi completado
 
     // Layout principal da calculadora (coluna)
     Column(
@@ -47,7 +48,7 @@ fun CalculatorApp() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)  // Espaçamento entre os elementos
     ) {
-        // Display da calculadora (exibe o texto da operação ou resultado)
+        // Display da calculadora (exibir o texto da operação ou resultado)
         Text(
             text = displayText,            // Texto exibido no display
             fontSize = 54.sp,              // Tamanho da fonte
@@ -91,6 +92,7 @@ fun CalculatorApp() {
                                     firstNumber = ""
                                     secondNumber = ""
                                     operator = ""
+                                    calculationComplete = false  // Resetar o estado da calculadora
                                 }
                                 "=" -> {  // Calcula o resultado
                                     if (firstNumber.isNotEmpty() && secondNumber.isNotEmpty() && operator.isNotEmpty()) {
@@ -99,23 +101,37 @@ fun CalculatorApp() {
                                         firstNumber = result.toString()  // Atualiza o primeiro número para o resultado
                                         secondNumber = ""  // Limpa o segundo número
                                         operator = ""  // Limpa o operador
+                                        calculationComplete = true  // Define que o cálculo foi completado
                                     }
                                 }
                                 else -> {  // Concatena os números no primeiro ou segundo número
-                                    if (operator.isEmpty()) {
-                                        firstNumber += label  // Atualiza o primeiro número
-                                        displayText = firstNumber  // Atualiza o display
+                                    if (calculationComplete) {
+                                        // Se um cálculo foi completado e o usuário digitar um novo número, reseta tudo
+                                        firstNumber = label
+                                        secondNumber = ""
+                                        operator = ""
+                                        displayText = firstNumber
+                                        calculationComplete = false  // Reseta a flag
                                     } else {
-                                        secondNumber += label  // Atualiza o segundo número
-                                        displayText = secondNumber  // Atualiza o display
+                                        if (operator.isEmpty()) {
+                                            firstNumber += label  // Atualiza o primeiro número
+                                            displayText = firstNumber  // Atualiza o display
+                                        } else {
+                                            secondNumber += label  // Atualiza o segundo número
+                                            displayText = secondNumber  // Atualiza o display
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    // Adiciona o operador correspondente à última coluna da linha
+                    // Adicionar operador na última coluna
                     CalculatorButton(operators[index]) {
+                        // Se o cálculo foi completado e o usuário escolhe um operador, mantém o resultado como firstNumber
+                        if (calculationComplete) {
+                            calculationComplete = false  // Reseta o cálculo completo
+                        }
                         operator = operators[index]  // Define o operador atual
                     }
                 }
@@ -130,11 +146,11 @@ fun CalculatorButton(label: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,  // Alinha o texto ao centro do botão
         modifier = Modifier
-            .size(64.dp)                      // Tamanho do botão (largura e altura)
+            .size(86.dp)                      // Tamanho do botão (largura e altura)
             .background(Color.LightGray)      // Fundo do botão
             .clickable { onClick() }           // Torna o botão clicável
     ) {
-        Text(text = label, fontSize = 24.sp, color = Color.Black)  // Exibe o texto do botão
+        Text(text = label, fontSize = 30.sp, color = Color.Black)  // Exibe o texto do botão
     }
 }
 
