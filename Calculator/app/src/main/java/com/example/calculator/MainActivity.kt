@@ -47,6 +47,7 @@ fun CalculatorApp() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFF989792))  // Cor de fundo personalizada (#989792)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)  // Espaçamento entre os elementos
     ) {
@@ -57,7 +58,7 @@ fun CalculatorApp() {
             fontWeight = FontWeight.Bold,  // Texto em negrito
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.LightGray) // Fundo cinza claro
+                .background(Color(0xFFBCCEB8))  // Cor de fundo do display personalizada (#bcceb8)
                 .padding(20.dp),            // Espaçamento interno
             maxLines = 1                    // Limitar a 1 linha
         )
@@ -216,7 +217,7 @@ fun CalculatorApp() {
             )
 
             // Lista de operadores
-            val operators = listOf("/","*","−","+")
+            val operators = listOf("÷","x","−","+")
 
             // Itera sobre as linhas dos botões numéricos e operadores
             numberButtons.forEachIndexed { index, row ->
@@ -279,6 +280,15 @@ fun CalculatorApp() {
     }
 }
 
+// Função para determinar a cor de fundo com base no rótulo do botão
+fun getButtonBackgroundColor(label: String): Color {
+    return when (label) {
+        "MRC", "M-", "M+", "√", "%", "+/−", "÷", "x", "−", "+" -> Color(0xFF161B1E)  // Cor preta personalizada (#161b1e)
+        "ON/C", "CE" -> Color(0xFFE24B6F)  // Cor personalizada em hexadecimal (#e24b6f)
+        else -> Color(0xFF6D7172) // Cor cinza personalizada (#6d7172)
+    }
+}
+
 // Função Composable que desenha cada botão da calculadora
 @Composable
 fun CalculatorButton(label: String, onClick: () -> Unit) {
@@ -286,7 +296,7 @@ fun CalculatorButton(label: String, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,  // Alinha o texto ao centro do botão
         modifier = Modifier
             .size(76.dp)                      // Tamanho do botão (largura e altura)
-            .background(Color.Gray)      // Fundo do botão
+            .background(getButtonBackgroundColor(label))    // Cor de fundo baseada no rótulo
             .clickable { onClick() }           // Torna o botão clicável
     ) {
         Text(text = label, fontSize = 24.sp, color = Color.White)  // Exibe o texto do botão
@@ -299,8 +309,8 @@ fun calculateResult(firstNumber: Double, secondNumber: Double, operator: String)
     val result = when (operator) {
         "+" -> firstNumber + secondNumber
         "−" -> firstNumber - secondNumber
-        "*" -> firstNumber * secondNumber
-        "/" -> if (secondNumber != 0.0) firstNumber / secondNumber else 0.0  // Evita divisão por zero
+        "x" -> firstNumber * secondNumber
+        "÷" -> if (secondNumber != 0.0) firstNumber / secondNumber else 0.0  // Evita divisão por zero
         else -> 0.0  // Caso padrão
     }
     return result
