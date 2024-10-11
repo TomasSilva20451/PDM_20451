@@ -1,5 +1,6 @@
 package com.example.calculator
 
+
 import java.util.Locale
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -40,6 +41,7 @@ fun CalculatorApp() {
     var operator by remember { mutableStateOf("") }      // Operador (ex: +, -, *)
     var secondNumber by remember { mutableStateOf("") }  // Segundo número
     var calculationComplete by remember { mutableStateOf(false) }  // Flag para indicar se o cálculo foi completado
+    var memoryValue by remember { mutableDoubleStateOf(0.0) } // Memória para M+, M-, MRC
 
     // Layout principal da calculadora (coluna)
     Column(
@@ -60,22 +62,161 @@ fun CalculatorApp() {
             maxLines = 1                    // Limitar a 1 linha
         )
 
+        // Função que processa a entrada numérica e limita a 7 casas decimais
+        fun appendNumber(number: String, targetNumber: String): String {
+            return if (targetNumber.contains('.')) {
+                val decimalPart = targetNumber.substringAfter('.')
+                if (decimalPart.length < 7) {  // Limitar a 7 casas decimais
+                    targetNumber + number
+                } else {
+                    targetNumber  // Não adicionar mais se já tiver 7 casas decimais
+                }
+            } else {
+                targetNumber + number
+            }
+        }
+
+        // Função para lidar com a entrada do número
+        fun handleNumberInput(number: String) {
+            if (calculationComplete) {
+                // Se um cálculo foi completado, começa um novo número
+                firstNumber = number
+                displayText = firstNumber
+                calculationComplete = false
+            } else {
+                if (operator.isEmpty()) {
+                    firstNumber = appendNumber(number, firstNumber)
+                    displayText = firstNumber
+                } else {
+                    secondNumber = appendNumber(number, secondNumber)
+                    displayText = secondNumber
+                }
+            }
+        }
+
         // Coluna para os botões (números e operadores)
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),  // Espaçamento entre linhas
             horizontalAlignment = Alignment.CenterHorizontally // Alinhamento horizontal centralizado
         ) {
+            //Linha de botões de memória
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ){
+                CalculatorButton("MRC") {
+                    displayText = memoryValue.toString() // Recupera o valor da memória
+                    firstNumber = memoryValue.toString()
+                }
+                CalculatorButton("M-") {
+                    if (displayText.isNotEmpty()) {
+                        memoryValue -= displayText.toDouble() // Subtrai o valor atual da memória
+                    }
+                }
+                CalculatorButton("M+") {
+                    if (displayText.isNotEmpty()) {
+                        memoryValue += displayText.toDouble() // Adiciona o valor atual à memória
+                    }
+                }
+                CalculatorButton("ON/C") {
+                    displayText = "0"
+                    firstNumber = ""
+                    secondNumber = ""
+                    operator = ""
+                    calculationComplete = false
+                }
+            }
+
+            // Linha de botões especial ON/C e CE
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CalculatorButton("√") {
+                    // Aplica a raiz quadrada ao número atual e limita a 3 casas decimais
+                    if (operator.isEmpty()) {
+                        if (firstNumber.isNotEmpty()) {
+                            val number = firstNumber.toDouble()
+                            if (number >= 0) {
+                                firstNumber = String.format(Locale.US, "%.3f", kotlin.math.sqrt(number))
+                                displayText = firstNumber
+                            } else {
+                                displayText = "Erro" // Número negativo
+                            }
+                        }
+                    } else {
+                        if (secondNumber.isNotEmpty()) {
+                            val number = secondNumber.toDouble()
+                            if (number >= 0) {
+                                secondNumber = String.format(Locale.US, "%.3f", kotlin.math.sqrt(number))
+                                displayText = secondNumber
+                            } else {
+                                displayText = "Erro" // Número negativo
+                            }
+                        }
+                    }
+                }
+                CalculatorButton("%") {
+                    if (operator.isEmpty()) {
+                        // Se não há operador, calcula a porcentagem do primeiro número
+                        if (firstNumber.isNotEmpty()) {
+                            firstNumber = (firstNumber.toDouble() / 100).toString()
+                            displayText = firstNumber
+                        }
+                    } else {
+                        // Se há um operador, calcula a porcentagem relativa ao primeiro número
+                        if (firstNumber.isNotEmpty() && secondNumber.isNotEmpty()) {
+                            secondNumber = ((firstNumber.toDouble() * secondNumber.toDouble()) / 100).toString()
+                            displayText = secondNumber
+                        }
+                    }
+                }
+                CalculatorButton("+/−") {
+                    // Alterna o sinal do número atual
+                    if (operator.isEmpty()) {
+                        // Inverte o sinal do primeiro número
+                        if (firstNumber.isNotEmpty()) {
+                            firstNumber = if (firstNumber.startsWith("-")) {
+                                firstNumber.removePrefix("-")
+                            } else {
+                                "-$firstNumber"
+                            }
+                            displayText = firstNumber
+                        }
+                    } else {
+                        // Inverte o sinal do segundo número
+                        if (secondNumber.isNotEmpty()) {
+                            secondNumber = if (secondNumber.startsWith("-")) {
+                                secondNumber.removePrefix("-")
+                            } else {
+                                "-$secondNumber"
+                            }
+                            displayText = secondNumber
+                        }
+                    }
+                }
+                CalculatorButton("CE") {
+                    if(operator.isEmpty()){
+                        firstNumber = ""
+                        displayText = "0"
+                    } else{
+                        secondNumber = ""
+                        displayText = "0"
+                    }
+                }
+            }
+
             // Lista de números para os botões (3x3 números e última linha com C, 0, =)
             val numberButtons = listOf(
-                listOf("1", "2", "3"),
-                listOf("4", "5", "6"),
                 listOf("7", "8", "9"),
-                listOf("C", "0", "=")
+                listOf("4", "5", "6"),
+                listOf("1", "2", "3"),
+                listOf("0", ".", "=")
             )
 
             // Lista de operadores
-            val operators = listOf("+", "-", "*", "/")
+            val operators = listOf("/","*","−","+")
 
             // Itera sobre as linhas dos botões numéricos e operadores
             numberButtons.forEachIndexed { index, row ->
@@ -97,31 +238,29 @@ fun CalculatorApp() {
                                 "=" -> {  // Calcula o resultado
                                     if (firstNumber.isNotEmpty() && secondNumber.isNotEmpty() && operator.isNotEmpty()) {
                                         val result = calculateResult(firstNumber.toDouble(), secondNumber.toDouble(), operator)
-                                        displayText = result.toString()  // Exibe o resultado
+                                        displayText = formatResult(result)  // Exibe o resultado formatado
                                         firstNumber = result.toString()  // Atualiza o primeiro número para o resultado
                                         secondNumber = ""  // Limpa o segundo número
                                         operator = ""  // Limpa o operador
                                         calculationComplete = true  // Define que o cálculo foi completado
                                     }
                                 }
-                                else -> {  // Concatena os números no primeiro ou segundo número
-                                    if (calculationComplete) {
-                                        // Se um cálculo foi completado e o usuário digitar um novo número, reseta tudo
-                                        firstNumber = label
-                                        secondNumber = ""
-                                        operator = ""
-                                        displayText = firstNumber
-                                        calculationComplete = false  // Reseta a flag
+                                "." -> {
+                                    // Adiciona um ponto decimal se não houver ainda
+                                    if (operator.isEmpty()) {
+                                        if (!firstNumber.contains('.')) {
+                                            firstNumber += "."
+                                            displayText = firstNumber
+                                        }
                                     } else {
-                                        if (operator.isEmpty()) {
-                                            firstNumber += label  // Atualiza o primeiro número
-                                            displayText = firstNumber  // Atualiza o display
-                                        } else {
-                                            secondNumber += label  // Atualiza o segundo número
-                                            displayText = secondNumber  // Atualiza o display
+                                        if (!secondNumber.contains('.')) {
+                                            secondNumber += "."
+                                            displayText = secondNumber
                                         }
                                     }
                                 }
+                                else -> handleNumberInput(label) // Chamada à função de inserção de número
+
                             }
                         }
                     }
@@ -146,26 +285,36 @@ fun CalculatorButton(label: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,  // Alinha o texto ao centro do botão
         modifier = Modifier
-            .size(86.dp)                      // Tamanho do botão (largura e altura)
-            .background(Color.LightGray)      // Fundo do botão
+            .size(76.dp)                      // Tamanho do botão (largura e altura)
+            .background(Color.Gray)      // Fundo do botão
             .clickable { onClick() }           // Torna o botão clicável
     ) {
-        Text(text = label, fontSize = 30.sp, color = Color.Black)  // Exibe o texto do botão
+        Text(text = label, fontSize = 24.sp, color = Color.White)  // Exibe o texto do botão
     }
 }
 
-// Função que calcula o resultado da operação
+// Função que calcula o resultado da operação com BigDecimal para maior precisão
 fun calculateResult(firstNumber: Double, secondNumber: Double, operator: String): Double {
     // Realiza a operação com base no operador
     val result = when (operator) {
         "+" -> firstNumber + secondNumber
-        "-" -> firstNumber - secondNumber
+        "−" -> firstNumber - secondNumber
         "*" -> firstNumber * secondNumber
         "/" -> if (secondNumber != 0.0) firstNumber / secondNumber else 0.0  // Evita divisão por zero
         else -> 0.0  // Caso padrão
     }
-    // Limita o resultado a 3 casas decimais usando Locale.US
-    return String.format(Locale.US, "%.3f", result).toDouble()
+    return result
+}
+
+// Função que formata o resultado para exibir como inteiro ou decimal
+fun formatResult(result: Double): String {
+    return if (result % 1 == 0.0) {
+        // Se for inteiro, converte para um inteiro e exibe sem casas decimais
+        result.toInt().toString()
+    } else {
+        // Se tiver parte decimal, exibe com até 3 casas decimais
+        String.format(Locale.US, "%.2f", result)
+    }
 }
 
 // Função de pré-visualização da calculadora no Android Studio
