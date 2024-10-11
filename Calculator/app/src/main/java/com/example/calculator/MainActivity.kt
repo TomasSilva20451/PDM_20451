@@ -5,6 +5,7 @@ import java.util.Locale
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -94,6 +95,9 @@ fun CalculatorApp() {
                 }
             }
         }
+
+        // Adicionando o Spacer para separar o visor dos botões
+        Spacer(modifier = Modifier.height(16.dp))  // Espaçamento vertical de 16.dp entre o visor e os botões
 
         // Coluna para os botões (números e operadores)
         Column(
@@ -295,8 +299,13 @@ fun CalculatorButton(label: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,  // Alinha o texto ao centro do botão
         modifier = Modifier
-            .size(76.dp)                      // Tamanho do botão (largura e altura)
-            .background(getButtonBackgroundColor(label))    // Cor de fundo baseada no rótulo
+
+            .width(76.dp)  // Largura do botão
+            .height(60.dp)  // Altura reduzida (você pode ajustar conforme necessário)
+            .background(
+                color = getButtonBackgroundColor(label),  // Cor de fundo baseada no rótulo
+                shape = RoundedCornerShape(15.dp)  // Cantos arredondados com 12.dp
+            )
             .clickable { onClick() }           // Torna o botão clicável
     ) {
         Text(text = label, fontSize = 24.sp, color = Color.White)  // Exibe o texto do botão
