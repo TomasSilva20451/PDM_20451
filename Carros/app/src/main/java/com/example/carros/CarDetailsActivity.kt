@@ -43,6 +43,9 @@ fun getCarDetails(context: Context, carName: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarDetailsScreen(carName: String, carDetails: String, onBackClick: () -> Unit) {
+    // Divida os detalhes do carro com base na vírgula
+    val details = carDetails.split(",").map { it.trim() }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,9 +65,47 @@ fun CarDetailsScreen(carName: String, carDetails: String, onBackClick: () -> Uni
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = carDetails)
+            // Exibe cada detalhe em uma caixa de texto
+            if (details.isNotEmpty()) {
+                OutlinedTextField(
+                    value = details.getOrNull(0) ?: "",
+                    onValueChange = {},
+                    label = { Text("Marca") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = details.getOrNull(1) ?: "",
+                    onValueChange = {},
+                    label = { Text("Modelo") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = details.getOrNull(2) ?: "",
+                    onValueChange = {},
+                    label = { Text("Segmento") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = details.getOrNull(3) ?: "",
+                    onValueChange = {},
+                    label = { Text("Ano") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = details.getOrNull(4) ?: "",
+                    onValueChange = {},
+                    label = { Text("Combustível") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
