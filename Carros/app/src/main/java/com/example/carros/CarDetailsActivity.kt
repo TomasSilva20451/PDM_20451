@@ -11,29 +11,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import android.content.Context
+import java.io.File
 
 class CarDetailsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Recebe o nome do carro a partir da Intent, ou define um valor padrão se nulo
         val carName = intent.getStringExtra("CAR_NAME") ?: "Detalhes do Carro"
 
+        val carDetails = getCarDetails(this, carName) // Obtenha os detalhes do carro
+
         setContent {
-            CarDetailsScreen(carName = carName, onBackClick = { finish() })
+            CarDetailsScreen(
+                carName = carName,
+                carDetails = carDetails,
+                onBackClick = { finish() }
+            )
         }
     }
 }
 
+fun getCarDetails(context: Context, carName: String): String {
+    val file = File(context.filesDir, "carros.txt")
+    if (file.exists()) {
+        val lines = file.readLines()
+        return lines.find { it.startsWith(carName) } ?: "Detalhes não encontrados"
+    }
+    return "Arquivo não encontrado"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarDetailsScreen(carName: String, onBackClick: () -> Unit) {
+fun CarDetailsScreen(carName: String, carDetails: String, onBackClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(carName) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {  // Botão para voltar
+                    IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = "Voltar"
@@ -49,10 +64,7 @@ fun CarDetailsScreen(carName: String, onBackClick: () -> Unit) {
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Text(text = "Modelo: Série 7")
-            Text(text = "Segmentação: Cabrio")
-            Text(text = "Ano: 2022")
-            Text(text = "Combustível: Plug-In")
+            Text(text = carDetails)
         }
     }
 }
@@ -60,5 +72,5 @@ fun CarDetailsScreen(carName: String, onBackClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun CarDetailsPreview() {
-    CarDetailsScreen(carName = "BMW", onBackClick = {})
+    CarDetailsScreen(carName = "BMW", carDetails = "Detalhes do carro", onBackClick = {})
 }

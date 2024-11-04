@@ -1,7 +1,8 @@
 package com.example.carros
 
-import android.os.Bundle
+import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -11,44 +12,66 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
-//import androidx.compose.material.icons.filled.AutoMirrored
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.carros.ui.theme.CarrosTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBar
+
+import androidx.activity.result.contract.ActivityResultContracts
+import java.io.File
+
+
 
 class MainActivity : ComponentActivity() {
+    private val requestCodeRegisterCar = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Atualiza a lista quando o novo carro é salvo com sucesso
+            refreshCarList()
+        }
+    }
+
+    private val carList = mutableStateListOf<String>() // Lista observável dos carros
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        refreshCarList() // Carrega os carros ao iniciar a atividade
+
         setContent {
-            MainScreen { carName ->
-                // Navegar para a tela de detalhes
-                startActivity(Intent(this, CarDetailsActivity::class.java).apply {
-                    putExtra("CAR_NAME", carName)
-                })
-            }
+            MainScreen(
+                carList = carList,
+                onCarClick = { carName ->
+                    startActivity(Intent(this, CarDetailsActivity::class.java).apply {
+                        putExtra("CAR_NAME", carName)
+                    })
+                },
+                onAddCarClick = { openRegisterCarActivity() }
+            )
         }
+    }
+
+    private fun openRegisterCarActivity() {
+        val intent = Intent(this, RegisterCarActivity::class.java)
+        requestCodeRegisterCar.launch(intent) // Usando a nova API de Activity Result
+    }
+
+    private fun refreshCarList() {
+        carList.clear() // Limpa a lista atual
+        carList.addAll(loadCarData(this)) // Recarrega a lista do arquivo `carros.txt`
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(onCarClick: (String) -> Unit) {
-    val carList = remember { mutableStateListOf("BMW", "Mercedes") }
-
+fun MainScreen(
+    carList: List<String>,
+    onCarClick: (String) -> Unit,
+    onAddCarClick: () -> Unit
+) {
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Lista de Carros") })
-        },
+        topBar = { TopAppBar(title = { Text("Lista de Carros") }) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { carList.add("Novo Carro ${carList.size + 1}") }
-            ) {
+            FloatingActionButton(onClick = onAddCarClick) {
                 Icon(Icons.Filled.Add, contentDescription = "Adicionar Carro")
             }
         }
@@ -82,10 +105,15 @@ fun CarListItem(carName: String, onCarClick: (String) -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CarrosTheme {
-        MainScreen { }
+// Função para ler o conteúdo do arquivo "carros.txt"
+fun loadCarData(context: Context): List<String> {
+    val file = File(context.filesDir, "carros.txt")
+    return if (file.exists()) {
+        file.readLines().map { line ->
+            line.split(",")[0].trim() // Pega apenas a marca (primeiro elemento antes da vírgula)
+        }
+    } else {
+        emptyList()
     }
 }
+

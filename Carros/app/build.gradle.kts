@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application") // Certifique-se de que esta linha aparece apenas uma vez
+    id("org.jetbrains.kotlin.android")
+    // id("kotlin-kapt") // Plugin para processamento de anotações do Room
 }
 
 android {
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.androidx.material3) // Material 3
     implementation(libs.androidx.material.icons.extended) // Material Icons Extended
 
+
     // Dependências de Teste
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -75,4 +77,5 @@ dependencies {
     // Ferramentas de Debugging
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }
