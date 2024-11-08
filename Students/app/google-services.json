@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1074272287871",
+    "project_id": "students-b5a55",
+    "storage_bucket": "students-b5a55.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1074272287871:android:e833e0ae26a14204ee934a",
+        "android_client_info": {
+          "package_name": "pt.ipca.students"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKmY0IXCGpa3KPNnjTNWzX2tVL66Pzdqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
