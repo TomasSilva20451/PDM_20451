@@ -4,11 +4,18 @@ import android.media.tv.interactive.TvInteractiveAppManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,12 +29,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import coil.compose.AsyncImage
 import com.example.weatherapp.WeatherViewModel
 import com.example.weatherapp.api.NetworkResponse
+import com.example.weatherapp.api.WeatherApi
+import com.example.weatherapp.api.WeatherModel
 import com.google.firebase.crashlytics.buildtools.reloc.javax.annotation.meta.When
+
 
 @Composable
 fun WeatherPage(viewModel: WeatherViewModel) {
@@ -79,9 +94,130 @@ fun WeatherPage(viewModel: WeatherViewModel) {
                 CircularProgressIndicator()
             }
             is NetworkResponse.Success -> {
-                Text(text = result.data.toString())
+                // Pass the weather data to the WeatherDetails composable
+                WeatherDetails(data = result.data)
             }
             null -> {}
         }
     }
 }
+
+
+@Composable
+fun WeatherDetails(data: WeatherModel) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,  // Fix typo here
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add, // Use a different icon for testing
+                contentDescription = "Add icon",
+                modifier = Modifier.size(40.dp),
+                tint = Color.Black
+            )
+            Text(text = data.location.name, fontSize = 30.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = data.location.country, fontSize = 18.sp, color = Color.Gray)
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = "${ data.current.temp_c} º c",
+            fontSize = 56.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        AsyncImage(
+            modifier = Modifier.size(170.dp),
+            model = "https:${data.current.condition.icon}".replace("64x64","128x128"),
+            contentDescription = "Condition icon"
+        )
+        Text(text =  data.current.condition.text,
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            color = Color.Gray
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // First section: Humidity and Precipitation
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Text(
+                            text = "Humidity", // Display the label first
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "${data.current.humidity}%", // Then display the humidity value
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp)) // Spacer for separation
+                        Text(
+                            text = "Precipitation mm: ${data.current.precip_mm}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // Second section: Pressure and Wind
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Pressure: ${data.current.pressure_mb} nPa",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Start
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "Wind: ${data.current.wind_kph} km/h",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Start
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
