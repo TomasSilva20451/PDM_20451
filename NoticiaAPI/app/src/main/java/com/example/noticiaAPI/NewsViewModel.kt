@@ -9,7 +9,6 @@ import com.example.noticiaAPI.api.Constant
 import com.example.noticiaAPI.api.NetworkResponse
 import com.example.noticiaAPI.api.NewsItem
 import com.example.noticiaAPI.api.RetrofitInstance
-import com.example.noticiaAPI.api.NewsModel
 import kotlinx.coroutines.launch
 
 
