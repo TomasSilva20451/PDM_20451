@@ -1,4 +1,4 @@
-package com.example.noticiaAPI.ui.theme
+package com.example.noticiaAPI.presentation.news_list
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,16 +18,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.noticiaAPI.NewsViewModel
-import com.example.noticiaAPI.api.Constant
-import com.example.noticiaAPI.api.NetworkResponse
-import com.example.noticiaAPI.api.NewsItem
+//import com.example.noticiaAPI.api.NetworkResponse
+//import com.example.noticiaAPI.api.NewsItem
+import com.example.noticiaAPI.data.remote.api.NetworkResponse
+// import com.example.noticiaAPI.data.remote.model.NewsItem
+import com.example.noticiaAPI.domain.model.News
 
 @Composable
 fun NewsPage(viewModel: NewsViewModel) {
-    var selectedLocale by remember { mutableStateOf("us") }
+    var selectedLocale by remember { mutableStateOf("us") }  // Allow the user to type freely
     var selectedLanguage by remember { mutableStateOf("en") }
-    val newsResult by viewModel.newsResult.observeAsState()
+    val newsResult: NetworkResponse<List<News>> by viewModel.newsResult.observeAsState(NetworkResponse.Success(emptyList()))  // Initial empty state
+    var localeErrorMessage by remember { mutableStateOf<String?>(null) }  // State to store error message
+
+    // Map of sets of country names to locale codes
+    val localeMap = mapOf(
+        setOf("United States of America", "united states of america","USA", "usa", "us") to "us",
+        setOf("Canada","canada", "CA", "ca") to "ca",
+        setOf("Brasil", "Brazil", "brasil", "BR", "br") to "br",
+        setOf("Portugal", "portugal", "PT", "pt") to "pt"
+    )
+
+    // Convert full country name to corresponding locale code
+    val convertCountryNameToLocale = { countryName: String ->
+        // Convert input and compare in lowercase for case-insensitive matching
+        localeMap.entries.find { entry ->
+            entry.key.any { it.trim().equals(countryName.trim(), ignoreCase = true) }
+        }?.value
+    }
 
     Column(
         modifier = Modifier
@@ -43,9 +61,9 @@ fun NewsPage(viewModel: NewsViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedTextField(
-                value = selectedLocale,
-                onValueChange = { selectedLocale = it },
-                label = { Text("Locale (e.g., us, ca)") }
+                value = selectedLocale,  // Let the user type freely in the locale field
+                onValueChange = { selectedLocale = it },  // Just update the value, no conversion here
+                label = { Text("Locale (e.g., USA, Canada, Brasil, Portugal)") }
             )
             Spacer(modifier = Modifier.width(8.dp))
             OutlinedTextField(
@@ -57,28 +75,51 @@ fun NewsPage(viewModel: NewsViewModel) {
 
         // Fetch News Button
         IconButton(onClick = {
-            viewModel.fetchTopNews(
-                apiToken = Constant.apiKey,
-                locale = selectedLocale,
-                language = selectedLanguage,
-                headlinesPerCategory = 6
-            )
+            // Convert the locale before making the API call
+            val convertedLocale = convertCountryNameToLocale(selectedLocale)
+
+            // If the locale is invalid, show error message
+            if (convertedLocale == null) {
+                localeErrorMessage = "Invalid Locale! Please use a valid country name (e.g., USA, Canada, Brasil, Portugal)."
+            } else {
+                localeErrorMessage = null  // Reset error message if locale is valid
+
+                // Trigger the search with the converted locale
+                viewModel.fetchTopNews(
+                    apiToken = "5QlmEn7Or1ga4YoNJMtQnaFjfjuosgdwD0dmG4DC", // Replace with actual API key
+                    locale = convertedLocale,
+                    language = selectedLanguage,
+                    headlinesPerCategory = 6
+                )
+            }
         }) {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Fetch News")
         }
 
+        // Show the error message if the locale is invalid
+        localeErrorMessage?.let {
+            Text(text = it, color = Color.Red, fontSize = 16.sp)
+        }
+
         // News Results
         when (val result = newsResult) {
-            is NetworkResponse.Error -> Text(text = result.message, color = Color.Red, fontSize = 16.sp)
+            is NetworkResponse.Error -> {
+                Text(text = result.message, color = Color.Red, fontSize = 16.sp)
+            }
             NetworkResponse.Loading -> CircularProgressIndicator()
-            is NetworkResponse.Success -> NewsList(news = result.data)
-            null -> Text(text = "Start searching for news", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            is NetworkResponse.Success -> {
+                if (result.data.isEmpty()) {
+                    Text(text = "No results found for the selected language/locale.", color = Color.Gray, fontSize = 16.sp)
+                } else {
+                    NewsList(news = result.data)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun NewsList(news: List<NewsItem>) {
+fun NewsList(news:  List<News>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,8 +132,9 @@ fun NewsList(news: List<NewsItem>) {
     }
 }
 
+
 @Composable
-fun NewsItemView(news: NewsItem) {
+fun NewsItemView(news: News) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -103,7 +145,7 @@ fun NewsItemView(news: NewsItem) {
             modifier = Modifier.padding(16.dp)
         ) {
             AsyncImage(
-                model = news.image_url,
+                model = news.imageUrl, // Correct property name
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -123,7 +165,7 @@ fun NewsItemView(news: NewsItem) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Published: ${news.published_at.substring(0, 10)}",
+                text = "Published: ${news.publishedAt.substring(0, 10)}", // Correct property name
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )

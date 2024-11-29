@@ -1,11 +1,11 @@
-package com.example.noticiaAPI.api
+package com.example.noticiaAPI.data.remote.api
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    private const val baseUrl = "https://api.thenewsapi.com";
+    private const val baseUrl = "https://api.thenewsapi.com"
 
     private fun getInstance(): Retrofit{
         return Retrofit.Builder()

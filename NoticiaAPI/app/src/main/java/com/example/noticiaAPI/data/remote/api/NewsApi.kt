@@ -1,5 +1,6 @@
-package com.example.noticiaAPI.api
+package com.example.noticiaAPI.data.remote.api
 
+import com.example.noticiaAPI.data.remote.model.NewsResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
