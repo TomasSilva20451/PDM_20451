@@ -27,7 +27,7 @@ app/
 ├── Color.kt                (Definição de cores)
 ├── Typography.kt           (Definição de tipografia)
 ├── Theme.kt                (Configuração geral de temas)
-
+```
 
 ## 📂 Descrição das Pastas
 
@@ -57,7 +57,7 @@ Siga as etapas abaixo para configurar e executar o projeto:
 1. Clone este repositório:
    ```bash
    git clone https://github.com/seu-usuario/projeto-clean-architecture.git
-
+```
 2. Abra o projeto no Android Studio.
 3. Execute o aplicativo em um dispositivo ou emulador Android.
 4. O aplicativo estará pronto para uso!
@@ -78,13 +78,16 @@ Contribuições são bem-vindas! Se você quiser melhorar este projeto, siga os 
 2. Crie uma branch para sua nova funcionalidade ou correção de bug:
    ```bash
    git checkout -b minha-nova-funcionalidade
+```
 3. Faça as modificações necessárias.
 4. Faça um commit com suas mudanças:
    ```bash
    git commit -m 'Adiciona nova funcionalidade'
+   ```
 5. Envie para o repositório original:
    ```bash
    git push origin minha-nova-funcionalidade
+   ```
 6. Abra um Pull Request e descreva suas alterações.
 
 ## 📄 Licença
