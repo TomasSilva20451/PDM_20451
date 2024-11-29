@@ -9,7 +9,7 @@ Este projeto demonstra o uso da **Clean Architecture** aplicada a um aplicativo 
 ## 📂 Estrutura de Pastas
 
 A estrutura de pastas do projeto segue os princípios da **Clean Architecture** e é organizada da seguinte forma:
-
+```bash
 app/
 └── src/
 └── main/
