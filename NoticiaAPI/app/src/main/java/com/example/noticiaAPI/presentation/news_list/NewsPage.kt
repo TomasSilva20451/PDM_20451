@@ -1,5 +1,6 @@
 package com.example.noticiaAPI.presentation.news_list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -23,9 +24,10 @@ import coil.compose.AsyncImage
 import com.example.noticiaAPI.data.remote.api.NetworkResponse
 // import com.example.noticiaAPI.data.remote.model.NewsItem
 import com.example.noticiaAPI.domain.model.News
+import androidx.navigation.NavController
 
 @Composable
-fun NewsPage(viewModel: NewsViewModel) {
+fun NewsPage(viewModel: NewsViewModel, navController: NavController) {
     var selectedLocale by remember { mutableStateOf("us") }  // Allow the user to type freely
     var selectedLanguage by remember { mutableStateOf("en") }
     val newsResult: NetworkResponse<List<News>> by viewModel.newsResult.observeAsState(NetworkResponse.Success(emptyList()))  // Initial empty state
@@ -111,15 +113,16 @@ fun NewsPage(viewModel: NewsViewModel) {
                 if (result.data.isEmpty()) {
                     Text(text = "No results found for the selected language/locale.", color = Color.Gray, fontSize = 16.sp)
                 } else {
-                    NewsList(news = result.data)
+                    NewsList(news = result.data, navController = navController)
                 }
             }
         }
     }
 }
 
+
 @Composable
-fun NewsList(news:  List<News>) {
+fun NewsList(news: List<News>, navController: NavController) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,25 +130,28 @@ fun NewsList(news:  List<News>) {
     ) {
         items(news.size) { index ->
             val newsItem = news[index]
-            NewsItemView(news = newsItem)
+            NewsItemView(news = newsItem, navController = navController) // Use NewsItemView here
         }
     }
 }
 
 
 @Composable
-fun NewsItemView(news: News) {
+fun NewsItemView(news: News, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+                navController.navigate("news_detail/${news.uuid}")
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             AsyncImage(
-                model = news.imageUrl, // Correct property name
+                model = news.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,7 +171,7 @@ fun NewsItemView(news: News) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Published: ${news.publishedAt.substring(0, 10)}", // Correct property name
+                text = "Published: ${news.publishedAt.substring(0, 10)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
@@ -179,7 +185,7 @@ fun NewsItemView(news: News) {
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = news.description ?: "No description available", // Provide a default value
+                text = news.description ?: "No description available",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 8.dp)
             )

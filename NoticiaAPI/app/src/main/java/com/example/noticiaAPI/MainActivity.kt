@@ -8,10 +8,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
-import com.example.noticiaAPI.presentation.news_list.NewsPage
+//import androidx.navigation.NavHostController
+//import androidx.navigation.compose.NavHost
+//import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+//import com.example.noticiaAPI.presentation.news_list.NewsPage
 import com.example.noticiaAPI.presentation.news_list.NewsViewModel
+//import com.example.noticiaAPI.presentation.news_detail.NewsDetailScreen
 import com.example.noticiaAPI.data.repository.NewsRepositoryImpl
-import com.example.noticiaAPI.ui.theme.NewsAppTheme // Make sure to import this
+import com.example.noticiaAPI.ui.theme.NewsAppTheme
+import com.example.noticiaAPI.presentation.navigation.SetupNavigation
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +41,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Pass the ViewModel instance correctly to NewsPage
-                    NewsPage(viewModel = newsViewModel)
+                    val navController = rememberNavController() // Initialize NavController
+                    SetupNavigation(navController, newsViewModel)
                 }
             }
         }

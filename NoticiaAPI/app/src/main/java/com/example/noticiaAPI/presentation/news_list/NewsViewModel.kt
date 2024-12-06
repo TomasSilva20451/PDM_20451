@@ -10,10 +10,13 @@ import com.example.noticiaAPI.domain.model.News
 import com.example.noticiaAPI.domain.use_case.GetTopNewsUseCase
 import kotlinx.coroutines.launch
 
+
 class NewsViewModel(private val getTopNewsUseCase: GetTopNewsUseCase) : ViewModel() {
 
     private val _newsResult = MutableLiveData<NetworkResponse<List<News>>>()
     val newsResult: LiveData<NetworkResponse<List<News>>> get() = _newsResult
+
+    private var cachedNews: List<News> = emptyList() // Cache the full news list
 
     init {
         _newsResult.value = NetworkResponse.Success(emptyList())  // Set to empty list initially
@@ -48,7 +51,32 @@ class NewsViewModel(private val getTopNewsUseCase: GetTopNewsUseCase) : ViewMode
                 language = language,
                 headlinesPerCategory = headlinesPerCategory
             )
+            if (result is NetworkResponse.Success) {
+                cachedNews = result.data // Cache the full list of news
+            }
             _newsResult.value = result
         }
+    }
+
+    fun fetchNewsById(newsId: String) {
+        _newsResult.value = NetworkResponse.Loading
+        viewModelScope.launch {
+            try {
+                // Fetch directly from cached news
+
+                val filteredNews = cachedNews.find { it.uuid == newsId }
+                _newsResult.value = if (filteredNews != null) {
+                    NetworkResponse.Success(listOf(filteredNews))
+                } else {
+                    NetworkResponse.Error("News with ID: $newsId not found.")
+                }
+            } catch (e: Exception) {
+                _newsResult.value = NetworkResponse.Error(e.localizedMessage ?: "Error fetching news.")
+            }
+        }
+    }
+
+    fun getNewsById(newsId: String): News? {
+        return cachedNews.find { it.uuid == newsId }
     }
 }
